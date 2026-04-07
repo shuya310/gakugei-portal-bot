@@ -74,7 +74,8 @@ async def check_category(page, category_label, file_name):
 
 async def main():
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False) # 動作確認のためFalse
+        # headless=True にすると、画面を表示せずに「頭脳」だけでブラウザを動かしてくれる
+        browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
 
         print("ログイン開始...")
