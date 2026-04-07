@@ -3,8 +3,6 @@ import os
 import requests
 from playwright.async_api import async_playwright
 
-import os
-import asyncio
 # ... 他のインポートはそのまま ...
 
 # --- 設定（GitHubのSecretsから読み込む） ---
