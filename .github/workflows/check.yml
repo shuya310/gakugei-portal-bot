@@ -1,8 +1,9 @@
 name: Portal Check
 on:
   schedule:
-    - cron: '*/20 * * * *' # 20分おきに実行
-  workflow_dispatch: # 手動実行ボタン
+    # 日本時間の 08:00から 18:50まで 10分おき
+    - cron: '*/10 23,0-9 * * *'
+  workflow_dispatch: # 手動実行ボタンを有効化
 
 jobs:
   build:
