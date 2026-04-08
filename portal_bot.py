@@ -38,37 +38,43 @@ def send_notification(category, title):
 async def check_category(page, category_label, file_name):
     print(f"\n--- {category_label} をチェック中 ---")
     
-    # 1. プルダウンからカテゴリを選択（表示されているテキストで選択）
-    # ※もし動かない場合は、スクショのセレクトボックスを特定して調整する
     await page.get_by_role("combobox").first.select_option(label=category_label)
-    
-    # 2. 「検索」ボタンをクリック
     await page.get_by_role("button", name="検索").click()
     
-    # 3. リストの更新を待つ
     await page.wait_for_load_state("networkidle")
     await asyncio.sleep(3)
 
-    # 4. 最新タイトルの取得
-    try:
-        title_element = page.locator(".link-txt.break").first
-        current_title = (await title_element.inner_text()).strip()
-        print(f"最新のタイトル: {current_title}")
-    except:
+    # ページ内の全てのタイトルを取得する
+    all_titles = await page.locator(".link-txt.break").all_inner_texts()
+    all_titles = [t.strip() for t in all_titles]
+
+    if not all_titles:
         print(f"{category_label} に表示項目がありません。")
         return
 
-    # 5. 比較と保存
+    # 前回保存したタイトルを読み込む
     last_title = ""
     if os.path.exists(file_name):
         with open(file_name, "r", encoding="utf-8") as f:
             last_title = f.read().strip()
 
-    if current_title != last_title:
-        print(f"★ {category_label} に新着あり！")
-        send_notification(category_label, current_title)
+    # 新着だけをリストにまとめる
+    new_titles = []
+    for t in all_titles:
+        if t == last_title:
+            # 前回と同じものが見つかったら、そこから下は既知のものなので終了
+            break
+        new_titles.append(t)
+
+    if new_titles:
+        print(f"★ {category_label} に {len(new_titles)}件 の新着あり！")
+        # 古いものから順に通知を送るために逆順にする
+        for t in reversed(new_titles):
+            send_notification(category_label, t)
+        
+        # 一番新しい（リストの先頭）タイトルを保存する
         with open(file_name, "w", encoding="utf-8") as f:
-            f.write(current_title)
+            f.write(all_titles[0])
     else:
         print("更新はありません。")
 
